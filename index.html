@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>טלפרומפטר | קורס DevOps</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&family=Frank+Ruhl+Libre:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#818CF8;--pk-l:#EEF2FF;--pk-s:#E0E7FF;--pk-d:#6366F1;
+  --mint:#34D399;--mt-l:#ECFDF5;--mt-s:#D1FAE5;--mt-d:#059669;
+  --gold:#06B6D4;--gd-l:#ECFEFF;--gd-s:#CFFAFE;--gd-d:#0891B2;
+  --dark:#1E293B;--txt:#334155;--mut:#64748B;--bg:#F8FAFC;--card:#FFFFFF;
+  --hl:#FEF3C7;--hl-b:#F59E0B;--read-bg:#D1FAE5;--read-b:#059669;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--txt);}
+.app{display:flex;height:100vh;}
+
+/* Sidebar */
+.sb{width:310px;min-width:310px;height:100vh;background:var(--card);border-left:3px solid var(--pink);display:flex;flex-direction:column;overflow:hidden;transition:all 0.3s;}
+.sb.collapsed{width:0;min-width:0;border:none;overflow:hidden;}
+.sb-head{padding:20px 16px;border-bottom:2px solid var(--pk-s);background:var(--pk-l);text-align:center;flex-shrink:0;}
+.sb-head h2{font-family:'Frank Ruhl Libre',serif;color:var(--gd-d);font-size:1.2rem;}
+.sb-head .sub{color:var(--mut);font-size:0.78rem;margin-top:4px;}
+.sb-scroll{flex:1;overflow-y:auto;padding:10px 12px;}
+.mg{margin-bottom:6px;}
+.mb{width:100%;text-align:right;background:var(--pk-l);border:1.5px solid var(--pink);border-radius:10px;padding:11px 14px;cursor:pointer;font-weight:700;color:var(--dark);font-size:0.88rem;font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:8px;transition:all 0.2s;}
+.mb:hover{background:var(--pk-s);}
+.mb.act{background:var(--gd-l);border-color:var(--gold);color:var(--gd-d);}
+.mb .arr{margin-right:auto;font-size:0.65rem;color:var(--mut);transition:transform 0.3s;}
+.mb.act .arr{transform:rotate(90deg);}
+.ll{display:none;padding:4px 0 4px 8px;}
+.ll.show{display:block;}
+.lb{display:block;width:100%;text-align:right;background:none;border:none;color:var(--mut);padding:9px 12px;font-size:0.83rem;cursor:pointer;border-radius:8px;font-family:'Heebo',sans-serif;border-right:3px solid transparent;transition:all 0.2s;}
+.lb:hover{color:var(--txt);background:var(--mt-l);border-right-color:var(--mint);}
+.lb.act{color:var(--gd-d);background:var(--gd-l);border-right-color:var(--gold);font-weight:600;}
+.sb-foot{padding:10px;border-top:2px solid var(--pk-s);background:var(--pk-l);text-align:center;flex-shrink:0;}
+.sb-foot .brand{color:var(--mut);font-size:0.7rem;}
+
+/* Main */
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.top{background:var(--card);border-bottom:2px solid var(--pk-s);padding:10px 16px;display:flex;align-items:center;flex-shrink:0;gap:6px;}
+.tog{background:var(--pk-l);border:1.5px solid var(--pink);color:var(--gd-d);width:40px;height:40px;border-radius:10px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tog:hover{background:var(--pk-s);}
+.ttl{font-family:'Heebo',sans-serif;color:var(--gd-d);font-size:0.88rem;font-weight:400;white-space:nowrap;flex-shrink:0;}
+.ctrls{display:flex;align-items:center;flex:1;gap:0;justify-content:stretch;}
+.ctrls>*{flex:1;text-align:center;}
+.cb{background:var(--pk-l);border:1.5px solid var(--pink);color:var(--txt);padding:9px 0;border-radius:22px;font-family:'Heebo',sans-serif;font-size:0.85rem;cursor:pointer;font-weight:600;white-space:nowrap;transition:all 0.2s;margin:0 3px;}
+.cb:hover{background:var(--pk-s);}
+.cb.on{background:var(--gold);border-color:var(--gd-d);color:#fff;}
+.cb.rec{background:#fee2e2;border-color:#f87171;color:#dc2626;animation:recPulse 1.2s ease-in-out infinite;}
+@keyframes recPulse{0%,100%{opacity:1;}50%{opacity:0.7;}}
+.cg{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--txt);font-size:0.85rem;background:var(--pk-l);padding:9px 0;border-radius:22px;border:1.5px solid var(--pink);white-space:nowrap;font-weight:500;margin:0 3px;}
+.cg span{font-size:0.85rem;}
+.cg input[type=range]{width:70px;accent-color:var(--gold);}
+.sz{background:var(--card);border:1.5px solid var(--pink);color:var(--txt);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.sz:hover{border-color:var(--gold);background:var(--gd-l);}
+
+/* Camera */
+.cam-wrap{position:relative;width:100%;max-height:0;overflow:hidden;transition:max-height 0.4s ease;background:#000;}
+.cam-wrap.open{max-height:300px;}
+.cam-vid{width:100%;height:200px;object-fit:cover;transform:scaleX(-1);}
+.cam-ctrls{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10;}
+.cam-btn{background:rgba(255,255,255,0.9);border:none;padding:6px 16px;border-radius:16px;font-family:'Heebo',sans-serif;font-size:0.8rem;cursor:pointer;font-weight:600;color:var(--txt);backdrop-filter:blur(4px);}
+.cam-btn:hover{background:#fff;}
+.cam-btn.recording{background:#fee2e2;color:#dc2626;}
+.cam-timer{position:absolute;top:8px;right:12px;background:rgba(220,38,38,0.9);color:#fff;padding:3px 10px;border-radius:12px;font-size:0.78rem;font-weight:600;display:none;}
+.cam-timer.on{display:block;}
+
+/* Tabs */
+.tabs{display:flex;background:var(--card);border-bottom:2px solid var(--pk-s);flex-shrink:0;padding:0 20px;}
+.tab{padding:10px 22px;border-bottom:3px solid transparent;color:var(--mut);cursor:pointer;font-size:0.85rem;font-weight:500;transition:all 0.2s;}
+.tab:hover{color:var(--txt);}
+.tab.on{color:var(--gd-d);border-bottom-color:var(--gold);font-weight:700;}
+
+/* Panels */
+.panels{flex:1;overflow:hidden;position:relative;}
+.pnl{display:none;height:100%;overflow-y:auto;padding:28px 36px 100px;}
+.pnl.on{display:block;}
+
+/* Teleprompter text */
+.tp{font-family:'Frank Ruhl Libre','Heebo',serif;line-height:2.4;}
+.seg{margin-bottom:20px;padding:18px 22px;border-radius:14px;border:1.5px solid transparent;background:var(--card);box-shadow:0 1px 6px rgba(0,0,0,0.02);transition:all 0.3s;}
+.seg.hl{border-color:var(--gold);background:var(--gd-l);}
+.ts-line{color:var(--gd-d);font-weight:700;font-size:1em;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--gd-s);}
+.bc{color:var(--pk-d);font-size:0.8em;margin:6px 0;padding:5px 12px;background:var(--pk-l);border-radius:6px;border-right:3px solid var(--pink);display:inline-block;}
+.ic-cue{color:var(--mt-d);font-size:0.8em;margin:4px 0;padding:5px 12px;background:var(--mt-l);border-radius:6px;border-right:3px solid var(--mint);display:inline-block;}
+
+/* Sentence highlighting */
+.sent{
+  display:block;
+  padding:5px 4px;
+  margin-bottom:2px;
+  border-radius:5px;
+  cursor:pointer;
+  border-right:3px solid transparent;
+  transition:background 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+}
+.sent.current{
+  background:var(--hl);
+  border-right-color:var(--hl-b);
+}
+.sent.read{
+  background:var(--read-bg);
+  border-right-color:var(--read-b);
+  opacity:0.65;
+}
+.sent:hover{background:var(--pk-l);}
+/* Manual click override */
+.sent.manual-read{
+  background:var(--read-bg);
+  border-right-color:var(--read-b);
+  opacity:0.65;
+}
+
+.tip-bx{background:var(--gd-l);border-right:4px solid var(--gold);padding:10px 16px;border-radius:6px;margin-top:10px;color:var(--gd-d);font-size:0.88em;font-weight:500;}
+
+/* AI prompts */
+.ai-cd{background:var(--card);border:1.5px solid var(--mt-s);border-radius:12px;padding:18px 22px;margin-bottom:12px;}
+.ai-cd:hover{border-color:var(--mint);}
+.ai-cd .lbl{color:var(--gd-d);font-weight:700;font-size:0.9rem;margin-bottom:8px;}
+.pr{font-family:'Courier New',monospace;color:var(--mut);font-size:0.83rem;line-height:1.6;direction:ltr;text-align:left;background:var(--mt-l);padding:12px 16px;border-radius:8px;cursor:pointer;border:1.5px solid transparent;transition:all 0.2s;}
+.pr:hover{border-color:var(--mint);}
+.pr.copied{border-color:var(--gold);background:var(--gd-l);}
+.ch{font-size:0.7rem;margin-top:4px;color:var(--mt-d);}
+.ic-cd{background:var(--card);border:1.5px solid var(--pk-s);border-radius:12px;padding:14px 18px;margin-bottom:10px;}
+.ic-cd .il{color:var(--pk-d);font-weight:700;font-size:0.86rem;margin-bottom:6px;}
+.ic-pr{font-family:'Courier New',monospace;color:var(--mut);font-size:0.8rem;direction:ltr;text-align:left;background:var(--pk-l);padding:10px 14px;border-radius:8px;cursor:pointer;line-height:1.5;border:1.5px solid transparent;}
+.ic-pr:hover{border-color:var(--pink);}
+
+/* Welcome */
+.welc{text-align:center;padding:80px 20px;}
+.welc .emo{font-size:3rem;margin-bottom:16px;}
+.welc .wt{font-family:'Frank Ruhl Libre',serif;font-size:1.4rem;color:var(--gd-d);margin-bottom:8px;}
+.welc .wd{color:var(--mut);font-size:0.95rem;line-height:2;}
+
+/* Progress */
+.prog{position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--pk-l);z-index:5;}
+.prog-f{height:100%;background:var(--gold);width:0;transition:width 0.3s;}
+.sctop{position:absolute;bottom:24px;left:24px;z-index:20;background:var(--gold);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:1.1rem;cursor:pointer;opacity:0;transition:all 0.3s;}
+.sctop.show{opacity:1;}
+
+@media(max-width:768px){
+  .sb,.sb.collapsed{position:fixed;left:0;right:0;top:0;bottom:0;width:100%!important;min-width:100%!important;z-index:100;display:none;border:none;transform:none;}
+  .sb.mob,.sb.mob.collapsed{display:flex!important;width:100%!important;min-width:100%!important;transform:none!important;}
+  .pnl{padding:16px 14px 80px;}
+  .top{padding:8px 10px;gap:4px;}
+  .ttl{font-size:0.78rem;}
+  .ctrls{flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;}
+  .ctrls>*{flex:none;}
+  .cb{padding:7px 12px;font-size:0.78rem;margin:0 2px;}
+  .cg{padding:5px 8px;font-size:0.78rem;margin:0 2px;}
+  .cg span{font-size:0.78rem;}
+  .cg input[type=range]{width:50px;}
+  .sz{width:24px;height:24px;font-size:0.78rem;}
+  .cam-vid{height:150px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sb collapsed" id="sb">
+    <div class="sb-head"><h2>💻 תפריט הקורס</h2><div class="sub">בחר שיעור כדי להתחיל</div></div>
+    <div class="sb-scroll" id="sbC"></div>
+    <div class="sb-foot"><div class="brand">💻 טלפרומפטר | קורס DevOps</div></div>
+  </aside>
+
+  <div class="mn">
+    <div class="top">
+      <button class="tog" onclick="togSB()">☰</button>
+      <div class="ttl" id="ttl">בחר שיעור כדי להתחיל</div>
+      <div class="ctrls">
+        <button class="cb" onclick="togPlay()" id="pb">▶ הפעלה</button>
+        <button class="cb" onclick="handleReset()">🔄 איפוס</button>
+        <button class="cb" onclick="togCam()" id="camBtn">📹 מצלמה</button>
+        <div class="cg"><span>מהירות</span><input type="range" min="0.1" max="10" value="1" step="0.1" id="spd" oninput="updSpd()"><span id="spdV">1</span></div>
+        <div class="cg"><span>גודל</span><button class="sz" onclick="chFnt(-2)">−</button><span id="fntV">26</span><button class="sz" onclick="chFnt(2)">+</button></div>
+      </div>
+    </div>
+
+    <div class="cam-wrap" id="camWrap">
+      <video class="cam-vid" id="camVid" autoplay muted playsinline></video>
+      <div class="cam-timer" id="camTimer">● 00:00</div>
+      <div class="cam-ctrls">
+        <button class="cam-btn" id="recBtn" onclick="togRec()">⏺ הקלטה</button>
+        <button class="cam-btn" onclick="stopCam()">✕ סגור</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab on" onclick="swTab(0)">📜 תסריט</div>
+      <div class="tab" onclick="swTab(1)">🎨 תמונות AI</div>
+      <div class="tab" onclick="swTab(2)">✨ אייקונים</div>
+    </div>
+
+    <div class="panels">
+      <div class="pnl on" id="pnl0">
+        <div class="tp" id="tp" style="font-size:26px">
+          <div class="welc"><div class="emo">🎬</div><div class="wt">בחר שיעור מהתפריט</div><div class="wd">כל משפט יתמרקר אוטומטית תוך כדי הגלילה<br>🟡 צהוב = בקריאה | 🟢 ירוק = נקרא</div></div>
+        </div>
+      </div>
+      <div class="pnl" id="pnl1"><div class="welc"><div class="emo">🎨</div><div class="wt">פרומפטים לתמונות AI</div><div class="wd">בחר שיעור מהתפריט</div></div></div>
+      <div class="pnl" id="pnl2"><div class="welc"><div class="emo">✨</div><div class="wt">אייקונים קופצים</div><div class="wd">בחר שיעור מהתפריט</div></div></div>
+      <div class="prog"><div class="prog-f" id="progF"></div></div>
+      <button class="sctop" id="scTop" onclick="scToTop()">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA
+   ============================================================ */
+</script>
+<script id="dataScript">
+const D=[
+{m:"מבוא לקורס DevOps",icon:"🚀",lessons:[
+{t:"מבוא: ברוכים הבאים לקורס DevOps",d:"3 דקות",segs:[
+{time:"0:00-0:45 – פתיחה",body:"חיוך חם, אנרגיה גבוהה",script:"היי! ברוכים הבאים לקורס DevOps המקיף. אם אתם כאן, סימן שאתם רוצים להיכנס לעולם ה-DevOps או לשדרג את הכישורים שלכם. DevOps הוא לא רק כלים וטכנולוגיות – זו תרבות שמשנה את הדרך שבה אנחנו בונים, מפתחים ומתחזקים תוכנה.",ai:"A futuristic tech workspace with multiple monitors showing code, deployment pipelines, and cloud dashboards. Neon blue and purple accents, dark background with glowing elements. DevOps infinity loop symbol prominently displayed. Modern tech aesthetic, 16:9.",icons:[{d:"אינסוף",p:"DevOps infinity loop with gear icons, neon blue purple, transparent background."},{d:"רקטה",p:"Rocket launching through cloud, tech launch icon, transparent background."}]},
+{time:"0:45-1:45 – מה תלמדו בקורס",body:"דברו בביטחון",script:"הקורס מחולק לעשרה מודולים מלאים. נתחיל ביסודות לינוקס, נעבור ל-Git ו-Version Control, נלמד CI/CD, Docker וקונטיינרים, Kubernetes, שירותי ענן, Infrastructure as Code עם Terraform, ניטור ולוגים, אבטחה ב-DevOps, וטיפים לקריירה בתחום.",ai:"A DevOps roadmap showing 10 tech milestones connected by glowing neon pipeline. Each milestone has a tech icon: terminal, git branch, pipeline, container, wheel, cloud, code block, graph, shield, trophy. Dark background with neon blue and purple path. Professional course overview, 16:9.",icons:[{d:"מפת דרכים",p:"Tech roadmap with glowing milestones, neon blue pipeline, transparent background."}]},
+{time:"1:45-3:00 – למי מתאים הקורס",body:"דברו באמפתיה וחיוך",script:"הקורס מתאים למפתחים שרוצים להרחיב את הכישורים שלהם, אנשי מערכות שרוצים לעבור ל-DevOps, סטודנטים בתחום המחשבים, ולכל מי שמעוניין בקריירה עם ביקוש גבוה ושכר מצוין. מספיק שיש לכם מוטיבציה ללמוד. הכל נלמד מאפס. אז בואו נתחיל!",ai:"A diverse group of tech professionals at workstations with code on screens. Modern open office with neon accents. Collaborative tech environment. Inclusive and encouraging, 16:9.",tip:"כל מודול בנוי על הקודם. מומלץ לעבור לפי הסדר ולתרגל כל כלי בפועל.",icons:[{d:"צוות טק",p:"Group of developers with laptops, code icons floating, transparent background."},{d:"לב",p:"Heart with code brackets, tech love icon, transparent background."}]}
+]}
+]},
+{m:"מודול 1: יסודות לינוקס",icon:"🐧",lessons:[
+{t:"שיעור 1.1: הכרות עם לינוקס",d:"7 דקות",segs:[
+{time:"0:00-1:30 – פתיחה",body:"דברו בביטחון",script:"לינוקס הוא מערכת ההפעלה שמריצה תשעים אחוז מהשרתים בעולם. כל שירות ענן, כל קונטיינר, כל Pipeline רץ על לינוקס. אם אתם רוצים לעבוד ב-DevOps, חייבים להכיר לינוקס. והחדשות הטובות – הפקודות הבסיסיות מאוד אינטואיטיביות.",ai:"Linux terminal screen with green text on black background, Tux penguin mascot beside it. Matrix-style code rain effect. Hacker aesthetic meets friendly learning, 16:9.",icons:[{d:"פינגווין",p:"Tux Linux penguin mascot with command prompt, friendly tech, transparent background."},{d:"טרמינל",p:"Terminal window with blinking cursor, green on black, transparent background."}]},
+{time:"1:30-3:30 – פקודות בסיסיות",body:"הדגימו בטרמינל",script:"ls – רשימת קבצים. cd – מעבר בין תיקיות. pwd – איפה אני עכשיו. mkdir – יצירת תיקיה. cp – העתקה. mv – העברה. rm – מחיקה. cat – הצגת תוכן קובץ. אלה עשר פקודות שמכסות שמונים אחוז מהעבודה היומית.",ai:"A cheat sheet style layout showing basic Linux commands in terminal style boxes. Each command with syntax and example. Dark terminal aesthetic with green and blue highlights. Clean instructional design, 16:9.",icons:[{d:"פקודות",p:"Terminal commands scrolling, green text on black, hacker style, transparent background."},{d:"צ'קליסט",p:"Checklist of commands checking off, neon green, transparent background."}]},
+{time:"3:30-5:30 – הרשאות וניהול קבצים",body:"הסבירו chmod",script:"כל קובץ בלינוקס יש לו הרשאות: קריאה, כתיבה, הרצה. chmod לשינוי הרשאות. chown לשינוי בעלות. שבע מאות חמש עשרה, שש מאות ארבעים וארבע – המספרים האלה יהיו החברים הכי טובים שלכם. sudo – הפקודה שנותנת כוח על. השתמשו בזהירות.",ai:"A visual diagram showing Linux file permissions: rwx for user, group, others. Color coded: read=blue, write=green, execute=red. Clean infographic with terminal examples, 16:9.",icons:[{d:"מנעול",p:"Lock and key with chmod numbers, permission icon, transparent background."},{d:"sudo",p:"Shield with sudo text, superuser power icon, neon, transparent background."}]},
+{time:"5:30-7:00 – Shell Scripting בסיסי",body:"דברו על אוטומציה",script:"סקריפט Bash הוא הצעד הראשון לאוטומציה. שורה ראשונה: שורת ה-Shebang. משתנים, תנאים, לולאות. כתבו סקריפט שמגבה קבצים כל יום אוטומטית. מריצים עם crontab. מזל טוב – עשיתם את הצעד הראשון באוטומציה.",ai:"A Bash script displayed on screen with highlighted syntax, arrows showing automation flow from script to scheduled tasks. Cron job visual. Automation concept, 16:9.",tip:"תרגלו כל פקודה בפועל. הדרך היחידה ללמוד לינוקס היא להקליד.",icons:[{d:"סקריפט",p:"Bash script file with gears, automation icon, neon blue, transparent background."},{d:"שעון",p:"Cron clock with repeat arrows, scheduled task icon, transparent background."}]}
+]}
+]},
+{m:"מודול 2: Git ו-Version Control",icon:"🔀",lessons:[
+{t:"שיעור 2.1: שליטה ב-Git",d:"8 דקות",segs:[
+{time:"0:00-2:00 – פתיחה ומושגי בסיס",body:"דברו בנחת",script:"Git הוא מערכת ניהול הגרסאות הפופולרית בעולם. כל צוות פיתוח, כל פרויקט, כל Pipeline מתחיל מ-Git. הרעיון פשוט: שמירת היסטוריה של כל שינוי בקוד, אפשרות לעבוד במקביל, ויכולת לחזור אחורה בכל רגע.",ai:"Git branch visualization with colorful branches merging and diverging. Timeline showing commits as nodes. Clean infographic on dark background with neon highlights, 16:9.",icons:[{d:"ענפים",p:"Git branches merging, colorful neon lines, transparent background."},{d:"היסטוריה",p:"Timeline with commit dots, version history, transparent background."}]},
+{time:"2:00-4:00 – פקודות Git חיוניות",body:"הדגימו בטרמינל",script:"git init – התחלת פרויקט. git add – הוספת שינויים. git commit – שמירת שינויים עם הודעה. git push – העלאה לשרת. git pull – הורדה מהשרת. git branch – יצירת ענף. git merge – מיזוג ענפים. git log – צפייה בהיסטוריה. שמונה פקודות שמכסות תשעים אחוז מהעבודה.",ai:"Terminal showing git commands with output examples. Side panel showing file status changes. Clean developer workflow visualization, 16:9.",icons:[{d:"commit",p:"Git commit icon with checkmark, save point, neon green, transparent background."},{d:"push",p:"Upload arrow with cloud, git push icon, transparent background."}]},
+{time:"4:00-6:00 – ענפים ו-Pull Requests",body:"דברו על שיתוף פעולה",script:"ענפים מאפשרים לעבוד על פיצ'רים חדשים בלי לשבור את הקוד הראשי. יוצרים ענף, עובדים, עושים Pull Request, מקבלים Code Review, ממזגים. זה הזרימה של כל צוות פיתוח מקצועי. GitHub, GitLab, Bitbucket – כולם עובדים ככה.",ai:"A workflow diagram showing feature branch strategy: main branch, feature branches, pull requests with review comments, merge back to main. GitHub PR interface mockup, 16:9.",icons:[{d:"PR",p:"Pull request icon with merge arrow, code review, transparent background."},{d:"צוות",p:"Team avatars reviewing code, collaboration, transparent background."}]},
+{time:"6:00-8:00 – פתרון קונפליקטים",body:"דברו ברוגע",script:"קונפליקטים קורים כשאנשים שונים משנים את אותו קוד. לא צריך להיבהל. Git מסמן בדיוק איפה הקונפליקט. בוחרים את הגרסה הנכונה, שומרים, עושים commit. כלים ויזואליים כמו VS Code הופכים את זה לפשוט עוד יותר. עם הזמן זה הופך לאוטומטי.",ai:"A split screen showing merge conflict resolution: left side showing conflict markers in code, right side showing clean resolved code. VS Code interface with merge tools highlighted, 16:9.",tip:"הרגל טוב: commit קטן ותדיר. ככה קונפליקטים קטנים וקלים לפתרון.",icons:[{d:"קונפליקט",p:"Two arrows colliding then resolving, conflict resolution, transparent background."},{d:"וי",p:"Green checkmark after successful merge, conflict resolved, transparent background."}]}
+]}
+]},
+{m:"מודול 3: CI/CD",icon:"⚙️",lessons:[
+{t:"שיעור 3.1: בניית Pipeline אוטומטי",d:"8 דקות",segs:[
+{time:"0:00-2:00 – מה זה CI/CD",body:"דברו בביטחון",script:"CI – Continuous Integration: כל שינוי בקוד עובר בדיקות אוטומטיות. CD – Continuous Delivery: הקוד מוכן לפריסה בכל רגע. CD – Continuous Deployment: הקוד מגיע לפרודקשן אוטומטית. זו הלב הפועם של DevOps. בלי CI/CD, אין DevOps.",ai:"A pipeline visualization showing code flowing through stages: Build, Test, Deploy. Each stage as a neon glowing box connected by arrows. Automated process aesthetic, dark background, 16:9.",icons:[{d:"צינור",p:"Pipeline with flowing code blocks, neon stages, transparent background."},{d:"אוטומציה",p:"Robot arm pressing deploy button, automation, transparent background."}]},
+{time:"2:00-4:00 – GitHub Actions",body:"הדגימו YAML",script:"GitHub Actions הוא הכלי הפופולרי ביותר ל-CI/CD. קובץ YAML פשוט בתיקיית workflows. מגדירים trigger – מתי לרוץ. מגדירים jobs – מה לעשות. steps – הצעדים בתוך כל job. תוך עשר דקות יש לכם Pipeline עובד.",ai:"GitHub Actions workflow file displayed with syntax highlighting. Side panel showing successful workflow run with green checkmarks. Clean GitHub UI aesthetic, 16:9.",icons:[{d:"GitHub",p:"GitHub octocat with gear icon, actions automation, transparent background."},{d:"YAML",p:"YAML file icon with code lines, configuration, transparent background."}]},
+{time:"4:00-6:00 – Jenkins",body:"דברו על כוח",script:"Jenkins הוא הוותיק והחזק ביותר. קוד פתוח, אלפי תוספים, אינסוף אפשרויות. Jenkinsfile – Pipeline as Code. מתקינים, מגדירים job, מחברים ל-Git, ומריצים. Jenkins יכול לעשות כל דבר שתחלמו עליו באוטומציה.",ai:"Jenkins dashboard showing pipeline view with blue ocean interface. Multiple stages running in parallel. Enterprise CI/CD visualization, 16:9.",icons:[{d:"Jenkins",p:"Jenkins butler logo with pipeline, CI server icon, transparent background."},{d:"תוספים",p:"Plugin puzzle pieces connecting, extensibility icon, transparent background."}]},
+{time:"6:00-8:00 – בדיקות אוטומטיות",body:"דברו על איכות",script:"Unit Tests – בדיקת פונקציות בודדות. Integration Tests – בדיקת חיבורים. End-to-End Tests – בדיקת תהליכים שלמים. הכלל: שמונים אחוז Unit, חמש עשרה Integration, חמישה E2E. פירמידת הבדיקות. אם אין בדיקות – אין CI.",ai:"Testing pyramid diagram: large base of unit tests, medium integration layer, small E2E top. Color coded with percentages. Quality assurance visualization, 16:9.",tip:"כלל זהב: אף commit לא עובר בלי שכל הבדיקות עוברות בירוק.",icons:[{d:"פירמידה",p:"Testing pyramid with green checkmarks at each level, transparent background."},{d:"באג",p:"Bug being caught by test net, quality assurance, transparent background."}]}
+]}
+]},
+{m:"מודול 4: Docker וקונטיינרים",icon:"🐳",lessons:[
+{t:"שיעור 4.1: Docker מהיסודות",d:"8 דקות",segs:[
+{time:"0:00-2:00 – מה זה Docker",body:"דברו בהתלהבות",script:"Docker שינה את העולם. במקום להגיד – אצלי על המחשב זה עובד – Docker מבטיח שהקוד רץ אותו דבר בכל מקום. קונטיינר הוא סביבה מבודדת וקלה שמכילה את האפליקציה עם כל מה שהיא צריכה. פשוט, מהיר, ואמין.",ai:"Docker whale carrying containers on its back, sailing through a digital ocean of code. Cloud infrastructure in background. Playful yet professional Docker visualization, 16:9.",icons:[{d:"לווייתן",p:"Docker whale with containers, blue ocean, friendly tech, transparent background."},{d:"קונטיינר",p:"Shipping container with code inside, containerization, transparent background."}]},
+{time:"2:00-4:00 – Dockerfile וImages",body:"הדגימו כתיבה",script:"Dockerfile הוא המתכון של הקונטיינר. FROM – תמונת בסיס. RUN – פקודות להרצה. COPY – העתקת קבצים. EXPOSE – פתיחת פורט. CMD – פקודת הפעלה. docker build ליצירת Image. docker run להרצה. שתי פקודות – ויש לכם סביבה שלמה.",ai:"Dockerfile displayed with syntax highlighting, arrows showing build process from Dockerfile to Image to Container. Layer visualization. Docker workflow, 16:9.",icons:[{d:"תוכנית",p:"Blueprint/recipe transforming to container, build process, transparent background."},{d:"שכבות",p:"Stacked layers of Docker image, layer by layer, transparent background."}]},
+{time:"4:00-6:00 – Docker Compose",body:"דברו על אפליקציות מורכבות",script:"אפליקציה אמיתית צריכה כמה שירותים: אפליקציה, מסד נתונים, cache, reverse proxy. Docker Compose מאפשר להגדיר הכל בקובץ YAML אחד. docker compose up – והכל עולה ביחד. docker compose down – והכל נעצר. ניהול סביבות שלמות בפקודה אחת.",ai:"Docker Compose architecture diagram showing multiple connected services: web app, database, Redis, Nginx. Arrows showing connections. Multi-service orchestration visual, 16:9.",icons:[{d:"רשת",p:"Network of connected containers, multi-service, transparent background."},{d:"YAML",p:"Compose file with service blocks, docker compose icon, transparent background."}]},
+{time:"6:00-8:00 – Best Practices",body:"דברו על מקצועיות",script:"תמונות קטנות – השתמשו ב-Alpine. שכבות מינימליות – צמצמו RUN. אל תריצו כ-root. השתמשו ב-multi-stage builds. סרקו פגיעויות. תייגו בצורה חכמה – לעולם לא latest בפרודקשן.",ai:"A checklist of Docker best practices displayed as golden rules on a dark background. Each rule with icon and example. Security and optimization focus, 16:9.",tip:"כלל זהב: קונטיינר אחד = תהליך אחד. אל תנסו לדחוס הכל לקונטיינר אחד.",icons:[{d:"מגן",p:"Security shield with Docker whale, best practices, transparent background."},{d:"אופטימיזציה",p:"Shrinking container size, optimization arrow, transparent background."}]}
+]}
+]},
+{m:"מודול 5: Kubernetes",icon:"☸️",lessons:[
+{t:"שיעור 5.1: Kubernetes – תזמורת הקונטיינרים",d:"8 דקות",segs:[
+{time:"0:00-2:00 – מה זה Kubernetes",body:"דברו בכבוד",script:"Kubernetes – או K8s – הוא מערכת לניהול קונטיינרים בסקייל. אם Docker הוא הקונטיינר, Kubernetes הוא המנצח שמנהל אלפי קונטיינרים ביחד. Auto-scaling, self-healing, load balancing – הכל אוטומטי. זה הסטנדרט בתעשייה.",ai:"An orchestra conductor metaphor with Kubernetes helm wheel conducting containers like musical instruments. Scale visualization showing containers multiplying. Grand orchestration concept, 16:9.",icons:[{d:"הגה",p:"Kubernetes helm wheel spinning, orchestration icon, neon blue, transparent background."},{d:"מנצח",p:"Orchestra conductor with container instruments, transparent background."}]},
+{time:"2:00-4:00 – מושגים בסיסיים",body:"הסבירו כל מושג",script:"Pod – היחידה הבסיסית, מכיל קונטיינר אחד או יותר. Node – מכונה שמריצה Pods. Cluster – אוסף של Nodes. Service – חשיפת Pod לרשת. Deployment – ניהול של רפליקות. Namespace – חלוקה לוגית. ששה מושגים שפותחים את הדלת לעולם שלם.",ai:"Kubernetes architecture diagram showing: Cluster containing Nodes, Nodes containing Pods, Pods containing Containers. Services connecting them. Clean labeled infographic, 16:9.",icons:[{d:"Pod",p:"Kubernetes pod with containers inside, building block, transparent background."},{d:"Cluster",p:"Cluster of connected nodes, network visualization, transparent background."}]},
+{time:"4:00-6:00 – kubectl ופקודות",body:"הדגימו בטרמינל",script:"kubectl get pods – מה רץ. kubectl apply – הפעלת הגדרות. kubectl describe – פרטים על משאב. kubectl logs – צפייה בלוגים. kubectl exec – כניסה לקונטיינר. חמש פקודות שמנהלות אלפי שרתים.",ai:"Terminal showing kubectl commands with cluster output. Dashboard panel showing pod status with green healthy indicators. K8s management interface, 16:9.",icons:[{d:"kubectl",p:"Terminal with kubernetes commands, neon green output, transparent background."},{d:"בריאות",p:"Health check heartbeat with green status, monitoring, transparent background."}]},
+{time:"6:00-8:00 – Helm Charts",body:"דברו על יעילות",script:"Helm הוא ה-package manager של Kubernetes. במקום לכתוב עשרות קבצי YAML – משתמשים ב-Charts מוכנים. helm install – מתקינים אפליקציה שלמה בפקודה אחת. helm upgrade – משדרגים. helm rollback – חוזרים אחורה. Helm חוסך שעות של עבודה.",ai:"Helm package management visualization: chart package transforming into deployed Kubernetes application. Before/after: dozens of YAML files vs one helm install command, 16:9.",tip:"התחילו עם Minikube – Kubernetes מקומי על המחשב שלכם. תרגלו לפני שעוברים לענן.",icons:[{d:"Helm",p:"Helm ship wheel with package boxes, package management, transparent background."},{d:"קסם",p:"Magic wand deploying entire app, one-click deploy, transparent background."}]}
+]}
+]},
+{m:"מודול 6: שירותי ענן",icon:"☁️",lessons:[
+{t:"שיעור 6.1: AWS, Azure, GCP",d:"8 דקות",segs:[
+{time:"0:00-2:00 – הענן בגדול",body:"דברו בהתלהבות",script:"הענן שינה הכל. במקום לקנות שרתים – שוכרים משאבים לפי צורך. שלושת הגדולים: AWS – הגדול והוותיק. Azure – של מיקרוסופט, פופולרי בארגונים. GCP – של גוגל, חזק בנתונים ו-AI. הבנה בסיסית בענן היא חובה ל-DevOps.",ai:"Three cloud platform logos floating above a cityscape: AWS orange, Azure blue, GCP colors. Cloud infrastructure visualization with servers, databases, networks. Enterprise cloud computing, 16:9.",icons:[{d:"ענן",p:"Cloud with three provider colors inside, cloud computing, transparent background."},{d:"שרתים",p:"Server rack with cloud arrow, migration to cloud, transparent background."}]},
+{time:"2:00-4:00 – שירותי ליבה",body:"הסבירו כל שירות",script:"Compute – EC2, VMs, הרצת שרתים. Storage – S3, Blob Storage, אחסון קבצים. Database – RDS, CosmosDB, מסדי נתונים מנוהלים. Networking – VPC, רשתות וירטואליות. IAM – ניהול הרשאות ומשתמשים. חמש קטגוריות שמכסות שמונים אחוז מהשימוש.",ai:"Five cloud service categories as building blocks: Compute, Storage, Database, Networking, IAM. Each with icons and examples from major providers. Cloud services architecture, 16:9.",icons:[{d:"קוביות",p:"Building blocks of cloud services stacking, colorful tech, transparent background."},{d:"IAM",p:"Key and user icon, access management, security, transparent background."}]},
+{time:"4:00-6:00 – Free Tier ותרגול",body:"דברו על גישה",script:"כל שלושת הספקים מציעים Free Tier – שימוש חינמי לשנה. זה מספיק כדי ללמוד, לתרגל, ולבנות פרויקטים. פתחו חשבון AWS Free Tier. הפעילו EC2 instance. חברו אליו ב-SSH. מזל טוב – יש לכם שרת בענן.",ai:"Free tier logos with gift boxes opening to reveal cloud resources. Hands-on lab setup showing laptop connecting to cloud instance. Accessible learning concept, 16:9.",icons:[{d:"מתנה",p:"Gift box opening with cloud resources, free tier, transparent background."},{d:"SSH",p:"Terminal connecting to cloud, secure connection, transparent background."}]},
+{time:"6:00-8:00 – Multi-Cloud ועתיד",body:"דברו על חזון",script:"ארגונים גדולים משתמשים ביותר מספק ענן אחד. Kubernetes מאפשר ניידות בין ספקים. Terraform עובד עם כולם. הכירו לפחות שני ספקים. הביקוש ל-Cloud Engineers רק הולך וגדל. זה הזמן להשקיע.",ai:"Multi-cloud architecture diagram showing workloads distributed across AWS, Azure, GCP. Kubernetes as the abstraction layer. Future of cloud visualization, 16:9.",tip:"התחילו עם AWS – הוא הפופולרי ביותר ועם הכי הרבה חומרי לימוד.",icons:[{d:"מולטי-ענן",p:"Three clouds connected by bridge, multi-cloud strategy, transparent background."},{d:"עתיד",p:"Crystal ball with cloud and code inside, tech future, transparent background."}]}
+]}
+]},
+{m:"מודול 7: Infrastructure as Code",icon:"📝",lessons:[
+{t:"שיעור 7.1: Terraform ו-Ansible",d:"8 דקות",segs:[
+{time:"0:00-2:00 – מה זה IaC",body:"דברו בביטחון",script:"Infrastructure as Code – ניהול תשתיות בקוד במקום בלחיצות. למה? כי קוד אפשר לגרסן, לבדוק, לשחזר, ולשכפל. לחיצות ידניות – אי אפשר. IaC הוא ההבדל בין מהנדס DevOps לבין מישהו שלוחץ כפתורים בקונסול.",ai:"Split comparison: LEFT - manual clicking in cloud console (chaotic, error-prone). RIGHT - clean code defining infrastructure (organized, version controlled). IaC transformation, 16:9.",icons:[{d:"קוד=תשתית",p:"Code brackets transforming into server infrastructure, IaC concept, transparent background."},{d:"אוטומט",p:"Manual hand clicking vs robot arm coding, automation upgrade, transparent background."}]},
+{time:"2:00-4:00 – Terraform",body:"הדגימו HCL",script:"Terraform של HashiCorp הוא הכלי המוביל. שפת HCL פשוטה וקריאה. terraform init – אתחול. terraform plan – תכנון. terraform apply – ביצוע. terraform destroy – הריסה. מגדירים VPC, EC2, RDS – הכל בקובץ טקסט. מריצים ובשניות יש תשתית שלמה.",ai:"Terraform workflow: init > plan > apply with code examples. Infrastructure resources appearing as code is applied. HashiCorp branding style, 16:9.",icons:[{d:"Terraform",p:"Terraform logo with building blocks appearing, IaC tool, transparent background."},{d:"Plan",p:"Blueprint with checkmarks, terraform plan visualization, transparent background."}]},
+{time:"4:00-6:00 – Ansible",body:"דברו על הגדרות",script:"Ansible הוא ל-Configuration Management. בעוד Terraform בונה תשתיות – Ansible מגדיר אותן. Playbooks ב-YAML. Agentless – לא צריך להתקין כלום על השרתים. Inventory – רשימת שרתים. Tasks – מה לעשות. Roles – ארגון לוגי. פשוט ועוצמתי.",ai:"Ansible playbook displayed with YAML syntax. Arrows showing commands flowing to multiple servers simultaneously. Configuration management visualization, 16:9.",icons:[{d:"Ansible",p:"Ansible logo with configuration arrows to servers, transparent background."},{d:"Playbook",p:"YAML file with play button, automation script, transparent background."}]},
+{time:"6:00-8:00 – GitOps",body:"דברו על עתיד",script:"GitOps הוא הדור הבא: Git כמקור האמת היחיד. כל שינוי בתשתית עובר דרך Pull Request. ArgoCD ו-Flux מסנכרנים אוטומטית בין Git לבין הקלאסטר. שינוי בקוד – מתעדכן אוטומטית בפרודקשן. זה העתיד של IaC.",ai:"GitOps flow diagram: Git repo > PR > Merge > ArgoCD > Kubernetes cluster update. Automated sync visualization with approval gates, 16:9.",tip:"הכלל: אף שינוי ידני. הכל בקוד, הכל ב-Git, הכל אוטומטי.",icons:[{d:"GitOps",p:"Git logo with infinity DevOps loop, GitOps concept, transparent background."},{d:"סנכרון",p:"Sync arrows between git and cluster, auto-deploy, transparent background."}]}
+]}
+]},
+{m:"מודול 8: ניטור ולוגים",icon:"📊",lessons:[
+{t:"שיעור 8.1: ניטור, לוגים ו-Observability",d:"8 דקות",segs:[
+{time:"0:00-2:00 – למה ניטור",body:"דברו על חשיבות",script:"אם אין לכם ניטור – אתם עיוורים. לא תדעו שהאפליקציה נפלה עד שלקוח יתקשר. שלושת עמודי ה-Observability: מטריקות – מה קורה. לוגים – למה קורה. Traces – איפה קורה. ביחד הם נותנים תמונה מלאה.",ai:"Three pillars of observability: Metrics (graphs), Logs (text streams), Traces (request flow). Dashboard showing all three. Monitoring command center aesthetic, 16:9.",icons:[{d:"עין",p:"Eye with dashboard reflection, monitoring all-seeing, transparent background."},{d:"3 עמודים",p:"Three pillars labeled Metrics Logs Traces, observability, transparent background."}]},
+{time:"2:00-4:00 – Prometheus ו-Grafana",body:"הדגימו דשבורד",script:"Prometheus אוסף מטריקות. Grafana מציג אותן בדשבורדים יפים. ביחד הם הזוג הכי פופולרי בניטור. מתקינים, מחברים, יוצרים דשבורד. תוך שעה יש לכם ניטור מקצועי שמציג CPU, זיכרון, בקשות, שגיאות.",ai:"Grafana dashboard with colorful graphs showing system metrics: CPU, memory, request rate, error rate. Professional monitoring dashboard, 16:9.",icons:[{d:"גרף",p:"Rising metrics graph with data points, Grafana style, transparent background."},{d:"דשבורד",p:"Dashboard with multiple panels, monitoring overview, transparent background."}]},
+{time:"4:00-6:00 – ELK Stack ולוגים",body:"דברו על חקירה",script:"Elasticsearch, Logstash, Kibana – ה-ELK Stack. Logstash אוסף לוגים. Elasticsearch מאנדקס ומאפשר חיפוש. Kibana מציג ויזואלית. כשיש באג בפרודקשן – הלוגים הם הבלש שלכם. בלי לוגים מרכזיים אתם מחפשים מחט בערימת שחת.",ai:"ELK Stack architecture: Logstash collecting from multiple sources, Elasticsearch indexing, Kibana displaying search results and visualizations. Log investigation concept, 16:9.",icons:[{d:"בלש",p:"Magnifying glass over log files, investigation, transparent background."},{d:"ELK",p:"Three connected letters E-L-K with data flowing, stack icon, transparent background."}]},
+{time:"6:00-8:00 – התראות ו-On-Call",body:"דברו ברצינות",script:"התראות חכמות: לא על כל דבר קטן – רק על מה שדורש פעולה. PagerDuty, OpsGenie – מערכות on-call. Runbooks – מדריכי טיפול לכל התראה. SLA ו-SLO – הגדרת רמת שירות. שמונים אחוז מהתקלות ניתנות למניעה עם ניטור טוב.",ai:"Alert management flow: metric threshold crossed > alert triggered > PagerDuty notification > engineer response > resolution. On-call rotation visualization, 16:9.",tip:"כלל הניטור: אם התראה לא דורשת פעולה מיידית – היא לא צריכה להיות התראה.",icons:[{d:"פעמון",p:"Alert bell ringing with exclamation mark, urgent notification, transparent background."},{d:"טלפון",p:"On-call phone with pager, DevOps on-call icon, transparent background."}]}
+]}
+]},
+{m:"מודול 9: אבטחה ב-DevOps",icon:"🔒",lessons:[
+{t:"שיעור 9.1: DevSecOps",d:"8 דקות",segs:[
+{time:"0:00-2:00 – Shift Left Security",body:"דברו ברצינות",script:"DevSecOps – שילוב אבטחה בכל שלב של הפיתוח. לא בסוף – מההתחלה. Shift Left – ככל שמוצאים בעיה מוקדם יותר, היא זולה יותר לתיקון. באג אבטחה בפרודקשן עולה פי מאה מבאג שנתפס ב-CI.",ai:"Shift Left security timeline showing cost of fixing bugs at different stages: design (cheap) vs production (extremely expensive). Security shield moving left in pipeline, 16:9.",icons:[{d:"מגן",p:"Security shield moving left on timeline, shift left concept, transparent background."},{d:"דולר",p:"Cost comparison chart: cheap left vs expensive right, transparent background."}]},
+{time:"2:00-4:00 – סריקת פגיעויות",body:"הדגימו כלים",script:"Snyk – סריקת תלויות. Trivy – סריקת Docker images. SonarQube – סריקת קוד. OWASP ZAP – בדיקות חדירה אוטומטיות. כל אלה נכנסים ל-CI Pipeline. כל commit נסרק אוטומטית. אף פגיעות ידועה לא מגיעה לפרודקשן.",ai:"Security scanning tools integrated into CI pipeline: Snyk, Trivy, SonarQube, OWASP ZAP. Each scanning at different points. Security automation visualization, 16:9.",icons:[{d:"סריקה",p:"Radar scanning for vulnerabilities, security sweep, transparent background."},{d:"באג",p:"Bug caught in security net, vulnerability found, transparent background."}]},
+{time:"4:00-6:00 – Secrets Management",body:"דברו על סודות",script:"לעולם אל תשמרו סודות בקוד. לא סיסמאות, לא מפתחות API, לא tokens. HashiCorp Vault – ניהול סודות מרכזי. AWS Secrets Manager. Environment variables. הצפנה at rest ו-in transit. סוד שנחשף – מחליפים מיד. אין פשרות.",ai:"Vault concept: secrets being stored securely behind encryption. Keys, passwords, tokens flowing into a golden vault. Contrast with exposed secrets in code (red X), 16:9.",icons:[{d:"כספת",p:"Digital vault with lock, secrets management, golden glow, transparent background."},{d:"מפתח",p:"Encryption key with shield, secure access, transparent background."}]},
+{time:"6:00-8:00 – Zero Trust ו-RBAC",body:"דברו על עקרונות",script:"Zero Trust – אל תסמכו על אף אחד, תמיד תאמתו. RBAC – Role Based Access Control – כל אחד מקבל רק את ההרשאות שהוא צריך. Least Privilege – מינימום הרשאות. MFA – אימות דו-שלבי לכולם. Audit Logs – רישום של כל פעולה. אבטחה היא לא פיצ'ר – היא תרבות.",ai:"Zero Trust architecture: every access request verified. RBAC visualization showing different roles with different permission levels. Security culture infographic, 16:9.",tip:"הכלל: תתנהגו כאילו כבר פרצו אליכם. ככה תבנו מערכות באמת מאובטחות.",icons:[{d:"אפס אמון",p:"Zero with shield, zero trust concept, transparent background."},{d:"RBAC",p:"User roles with different access levels, permission matrix, transparent background."}]}
+]}
+]},
+{m:"מודול 10: קריירה ב-DevOps",icon:"💼",lessons:[
+{t:"שיעור 10.1: איך להיכנס לתחום ולהתקדם",d:"8 דקות",segs:[
+{time:"0:00-2:00 – השוק",body:"דברו בהתלהבות",script:"DevOps הוא אחד התחומים עם הביקוש הכי גבוה בעולם הטק. שכר ממוצע גבוה משמעותית. הביקוש רק עולה. כל חברה צריכה DevOps Engineers. הכישורים שלמדתם בקורס הזה פותחים דלתות לחברות הטובות ביותר בעולם.",ai:"Job market visualization: DevOps engineer demand graph rising steeply. Salary comparison charts. Company logos of top tech companies hiring. Career opportunity landscape, 16:9.",icons:[{d:"גרף",p:"Rising salary and demand graph, career growth, transparent background."},{d:"מזוודה",p:"Briefcase with tech tools, career icon, transparent background."}]},
+{time:"2:00-4:00 – בניית פרויקט",body:"דברו על תיק עבודות",script:"הדבר הכי חשוב: פרויקט אמיתי ב-GitHub. צרו תשתית מלאה: Terraform ליצירת ענן. Docker לאפליקציה. Kubernetes לפריסה. GitHub Actions ל-CI/CD. Prometheus ו-Grafana לניטור. זה הפרויקט שמראים בראיון עבודה.",ai:"GitHub portfolio showing a complete DevOps project: Terraform code, Dockerfiles, K8s manifests, CI pipeline. Stars and forks. Professional portfolio showcase, 16:9.",icons:[{d:"GitHub",p:"GitHub profile with green contribution graph, active developer, transparent background."},{d:"כוכב",p:"Star badge for portfolio project, achievement, transparent background."}]},
+{time:"4:00-6:00 – הסמכות",body:"דברו על ערך",script:"AWS Solutions Architect – ההסמכה הפופולרית ביותר. CKA – Certified Kubernetes Administrator. Terraform Associate. Azure Fundamentals. ההסמכות לא חובה, אבל הן פותחות דלתות ומראות רצינות. התחילו עם אחת ובנו משם.",ai:"Certification badges displayed: AWS SA, CKA, Terraform, Azure. Each with study time estimate and difficulty level. Certification roadmap, 16:9.",icons:[{d:"תעודה",p:"Certificate with seal, professional certification, golden, transparent background."},{d:"מדרגות",p:"Steps from junior to senior with certifications, career ladder, transparent background."}]},
+{time:"6:00-8:00 – סיום הקורס",body:"חיוך רחב, אנרגיה של חגיגה",script:"סיימנו את הקורס! עכשיו יש לכם את הבסיס המלא: לינוקס, Git, CI/CD, Docker, Kubernetes, ענן, IaC, ניטור, אבטחה. בנו פרויקט. קבלו הסמכה. שלחו קורות חיים. הכלים ביד שלכם. עכשיו צריך לתרגל, לבנות, וללמוד כל יום. הצלחה ענקית בקריירה החדשה שלכם!",ai:"Grand celebration with DevOps infinity loop made of golden light, floating tech badges, confetti in neon colors. Laptop showing COURSE COMPLETE. Banner: GO BUILD AND DEPLOY! Empowering tech celebration, 16:9.",tip:"הצעד הראשון: בנו את הפרויקט המלא ב-GitHub. התרגול הוא מה שהופך ידע לכישרון.",icons:[{d:"קונפטי",p:"Confetti explosion with DevOps infinity loop and trophy, neon colors, transparent background."},{d:"רקטה",p:"Rocket launching from laptop, career launch, transparent background."}]}
+]}
+]}
+];
+</script>
+<script>
+/* ============================================================
+   TELEPROMPTER ENGINE - COMPLETELY REWRITTEN
+   ============================================================
+   
+   BUG FIXES:
+   1. Reset now STOPS auto-play first, then clears all marks,
+      scrolls to top, and re-marks the first sentence.
+   2. Sentence tracking uses a dedicated index counter instead
+      of relying solely on getBoundingClientRect, preventing
+      sentence skipping during fast scroll.
+   3. Auto-scroll uses requestAnimationFrame for smooth,
+      consistent movement instead of setInterval.
+   4. Scroll listener is properly attached after every lesson load.
+   5. All state is cleanly reset between lesson loads.
+   ============================================================ */
+
+let curL = null;
+let playing = false;
+let animFrameId = null;
+let spd = 1;
+let fntSz = 26;
+let resetLock = false; // Prevents autoMark during reset
+
+/* ---- Sidebar ---- */
+function buildSB() {
+  var c = document.getElementById('sbC');
+  var h = '';
+  D.forEach(function(m, mi) {
+    h += '<div class="mg"><button class="mb" onclick="togMod(this)"><span>' + m.icon + '</span>' + m.m + '<span class="arr">◀</span></button><div class="ll">';
+    m.lessons.forEach(function(l, li) {
+      h += '<button class="lb" data-m="' + mi + '" data-l="' + li + '" onclick="loadL(' + mi + ',' + li + ')">' + l.t + ' (' + l.d + ')</button>';
+    });
+    h += '</div></div>';
+  });
+  c.innerHTML = h;
+}
+
+function togMod(el) {
+  var l = el.nextElementSibling;
+  var wasOpen = l.classList.contains('show');
+  document.querySelectorAll('.ll').forEach(function(x) { x.classList.remove('show'); });
+  document.querySelectorAll('.mb').forEach(function(x) { x.classList.remove('act'); });
+  if (!wasOpen) {
+    l.classList.add('show');
+    el.classList.add('act');
+  }
+}
+
+function togSB() {
+  var s = document.getElementById('sb');
+  if (window.innerWidth <= 768) {
+    s.classList.toggle('mob');
+  } else {
+    s.classList.toggle('collapsed');
+  }
+}
+
+/* ---- Sentence Splitting ---- */
+function splitSentences(txt) {
+  var results = [];
+  var buf = '';
+  for (var i = 0; i < txt.length; i++) {
+    buf += txt[i];
+    if ((txt[i] === '.' || txt[i] === '!' || txt[i] === '?') &&
+        (i === txt.length - 1 || txt[i + 1] === ' ' || txt[i + 1] === '\n')) {
+      if (buf.trim()) results.push(buf.trim());
+      buf = '';
+    }
+  }
+  if (buf.trim()) results.push(buf.trim());
+  return results;
+}
+
+/* ---- Load Lesson ---- */
+function loadL(mi, li) {
+  // Stop everything first
+  stopPlay();
+  resetLock = true;
+
+  curL = D[mi].lessons[li];
+
+  // Update sidebar
+  document.querySelectorAll('.lb').forEach(function(b) { b.classList.remove('act'); });
+  var btn = document.querySelector('[data-m="' + mi + '"][data-l="' + li + '"]');
+  if (btn) btn.classList.add('act');
+
+  // Update title
+  document.getElementById('ttl').textContent = curL.t;
+
+  // Render content
+  renderScript(curL);
+  renderPr(curL);
+  renderIc(curL);
+
+  // Switch to script tab
+  swTab(0);
+
+  // Close mobile sidebar
+  if (window.innerWidth <= 768) {
+    document.getElementById('sb').classList.remove('mob');
+  }
+
+  // Scroll to top and setup highlighting after render
+  var pnl = document.getElementById('pnl0');
+  pnl.scrollTop = 0;
+
+  setTimeout(function() {
+    resetLock = false;
+    autoMark();
+    attachScrollListener();
+  }, 100);
+}
+
+/* ---- Render Script ---- */
+function renderScript(l) {
+  var a = document.getElementById('tp');
+  var h = '';
+  l.segs.forEach(function(s, i) {
+    h += '<div class="seg" id="seg' + i + '">';
+    h += '<div class="ts-line">⏰ ' + s.time + '</div>';
+    h += '<div class="bc">🎭 ' + s.body + '</div>';
+    if (s.iconcue) h += '<div class="ic-cue">✨ ' + s.iconcue + '</div>';
+    var sents = splitSentences(s.script);
+    h += '<div class="script-text">';
+    sents.forEach(function(sent, si) {
+      h += '<span class="sent" data-idx="' + si + '" onclick="clickSent(this)">' + sent + ' </span>';
+    });
+    h += '</div>';
+    if (s.tip) h += '<div class="tip-bx">⭐ ' + s.tip + '</div>';
+    h += '</div>';
+  });
+  a.innerHTML = h;
+  a.style.fontSize = fntSz + 'px';
+}
+
+function renderPr(l) {
+  var a = document.getElementById('pnl1');
+  var h = '';
+  l.segs.forEach(function(s) {
+    h += '<div class="ai-cd"><div class="lbl">🎨 ' + s.time + '</div><div class="pr" onclick="copyEl(this)">' + s.ai + '</div><div class="ch">לחצי להעתקה</div></div>';
+  });
+  a.innerHTML = h;
+}
+
+function renderIc(l) {
+  var a = document.getElementById('pnl2');
+  var h = '';
+  l.segs.forEach(function(s) {
+    if (s.icons && s.icons.length) {
+      h += '<div style="margin-bottom:6px;color:var(--gd-d);font-weight:700;font-size:.88rem;">' + s.time + '</div>';
+      s.icons.forEach(function(ic) {
+        h += '<div class="ic-cd"><div class="il">✨ ' + ic.d + '</div><div class="ic-pr" onclick="copyEl(this)">' + ic.p + '</div><div class="ch" style="color:var(--pk-d)">לחצי להעתקה</div></div>';
+      });
+    }
+  });
+  if (!h) h = '<div class="welc"><div class="emo">✨</div><div class="wd">אין אייקונים לשיעור זה</div></div>';
+  a.innerHTML = h;
+}
+
+/* ---- Manual Click on Sentence ---- */
+function clickSent(el) {
+  el.classList.toggle('manual-read');
+}
+
+/* ============================================================
+   CORE FIX: autoMark - Sentence Highlighting Engine
+   ============================================================
+   Uses the read-line position (35% from top of panel) to
+   determine which sentence is "current" and which are "read".
+   
+   Key fix: We iterate ALL sentences every time and compare
+   their position to the read line. No early breaks that could
+   skip sentences.
+   ============================================================ */
+function autoMark() {
+  if (resetLock) return;
+
+  var pnl = document.getElementById('pnl0');
+  if (!pnl) return;
+
+  var sents = pnl.querySelectorAll('.sent');
+  if (!sents.length) return;
+
+  var pnlRect = pnl.getBoundingClientRect();
+  var readY = pnlRect.top + pnlRect.height * 0.35;
+
+  var currentIdx = -1;
+
+  // Find the LAST sentence whose CENTER is at or above the read line.
+  // Using center (not top) prevents skipping the first visible sentence.
+  for (var i = 0; i < sents.length; i++) {
+    var r = sents[i].getBoundingClientRect();
+    var sentCenter = r.top + r.height * 0.5;
+
+    if (sentCenter <= readY) {
+      currentIdx = i;
+    }
+  }
+
+  // Apply states
+  for (var j = 0; j < sents.length; j++) {
+    var s = sents[j];
+    if (s.classList.contains('manual-read')) continue;
+
+    s.classList.remove('read', 'current');
+
+    if (j < currentIdx) {
+      s.classList.add('read');
+    } else if (j === currentIdx) {
+      s.classList.add('current');
+    }
+  }
+
+  // If nothing reached the line yet, mark the first sentence as current
+  if (currentIdx < 0 && sents.length > 0) {
+    for (var k = 0; k < sents.length; k++) {
+      if (!sents[k].classList.contains('manual-read')) {
+        sents[k].classList.add('current');
+        break;
+      }
+    }
+  }
+
+  updProg();
+}
+
+/* ---- Scroll Listener ---- */
+var scrollListenerAttached = false;
+
+function attachScrollListener() {
+  var pnl = document.getElementById('pnl0');
+  if (!pnl) return;
+
+  // Remove old listener if any
+  if (pnl._scrollHandler) {
+    pnl.removeEventListener('scroll', pnl._scrollHandler);
+  }
+
+  // Create new handler with throttle
+  var ticking = false;
+  pnl._scrollHandler = function() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function() {
+        autoMark();
+        ticking = false;
+      });
+    }
+  };
+
+  pnl.addEventListener('scroll', pnl._scrollHandler, { passive: true });
+  scrollListenerAttached = true;
+}
+
+/* ============================================================
+   CORE FIX: Reset - Now properly stops everything
+   ============================================================ */
+function handleReset() {
+  // 1. Stop auto-play first
+  stopPlay();
+
+  // 2. Lock autoMark to prevent re-marking during scroll-to-top
+  resetLock = true;
+
+  // 3. Clear ALL sentence marks
+  var sents = document.querySelectorAll('.sent');
+  for (var i = 0; i < sents.length; i++) {
+    sents[i].className = 'sent';
+  }
+
+  // 4. Scroll to top
+  var pnl = document.getElementById('pnl0');
+  if (pnl) {
+    pnl.scrollTop = 0;
+  }
+
+  // 5. Reset progress bar immediately
+  document.getElementById('progF').style.width = '0%';
+
+  // 6. After scroll settles, unlock and mark first sentence
+  setTimeout(function() {
+    resetLock = false;
+    var firstSent = document.querySelector('#pnl0 .sent');
+    if (firstSent) {
+      firstSent.classList.add('current');
+    }
+  }, 250);
+}
+
+/* ============================================================
+   CORE FIX: Auto-Play - Uses requestAnimationFrame
+   ============================================================
+   Instead of setInterval (which can drift and cause skips),
+   we use requestAnimationFrame for smooth, consistent scrolling.
+   ============================================================ */
+function togPlay() {
+  if (playing) {
+    stopPlay();
+  } else {
+    startPlay();
+  }
+}
+
+function startPlay() {
+  if (playing) return;
+  playing = true;
+  document.getElementById('pb').textContent = '⏸ עצירה';
+  document.getElementById('pb').classList.add('on');
+
+  var lastTime = performance.now();
+  var accumulated = 0; // Accumulate sub-pixel fractions
+
+  function scrollStep() {
+    if (!playing) return;
+
+    var now = performance.now();
+    var delta = now - lastTime;
+    lastTime = now;
+
+    // Cap delta to prevent huge jumps (e.g. after tab switch)
+    if (delta > 100) delta = 16;
+
+    var pnl = document.getElementById('pnl0');
+    if (pnl) {
+      // Accumulate fractional pixels
+      accumulated += spd * 0.8 * (delta / 16.67);
+
+      // Only scroll when we have at least 1 whole pixel
+      if (accumulated >= 1) {
+        var pixels = Math.floor(accumulated);
+        accumulated -= pixels;
+        pnl.scrollTop += pixels;
+        autoMark();
+      }
+    }
+
+    animFrameId = requestAnimationFrame(scrollStep);
+  }
+
+  animFrameId = requestAnimationFrame(scrollStep);
+}
+
+function stopPlay() {
+  playing = false;
+  if (animFrameId) {
+    cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+  }
+  document.getElementById('pb').textContent = '▶ הפעלה';
+  document.getElementById('pb').classList.remove('on');
+}
+
+/* ---- Speed & Font ---- */
+function updSpd() {
+  spd = +document.getElementById('spd').value;
+  document.getElementById('spdV').textContent = spd % 1 === 0 ? spd : spd.toFixed(1);
+}
+
+function chFnt(d) {
+  fntSz = Math.max(16, Math.min(52, fntSz + d));
+  document.getElementById('fntV').textContent = fntSz;
+  document.getElementById('tp').style.fontSize = fntSz + 'px';
+  // Re-mark after font size change (positions change)
+  setTimeout(autoMark, 50);
+}
+
+/* ---- Progress & Scroll ---- */
+function updProg() {
+  var p = document.getElementById('pnl0');
+  if (!p) return;
+  var max = p.scrollHeight - p.clientHeight;
+  var pct = max > 0 ? (p.scrollTop / max) * 100 : 0;
+  document.getElementById('progF').style.width = Math.min(pct, 100) + '%';
+
+  // Show/hide scroll-to-top button
+  var scBtn = document.getElementById('scTop');
+  if (p.scrollTop > 300) {
+    scBtn.classList.add('show');
+  } else {
+    scBtn.classList.remove('show');
+  }
+}
+
+function scToTop() {
+  handleReset();
+}
+
+/* ---- Tabs ---- */
+function swTab(n) {
+  stopPlay();
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('on'); });
+  document.querySelectorAll('.pnl').forEach(function(p) { p.classList.remove('on'); });
+  document.querySelectorAll('.tab')[n].classList.add('on');
+  document.getElementById('pnl' + n).classList.add('on');
+}
+
+/* ---- Copy ---- */
+function copyEl(el) {
+  navigator.clipboard.writeText(el.textContent).then(function() {
+    el.classList.add('copied');
+    var h = el.nextElementSibling;
+    if (h) h.textContent = '✓ הועתק!';
+    setTimeout(function() {
+      el.classList.remove('copied');
+      if (h) h.textContent = 'לחצי להעתקה';
+    }, 2000);
+  });
+}
+
+/* ---- Camera ---- */
+var camStream = null, mediaRec = null, recChunks = [], recTimerInt = null, recSec = 0, camOpen = false;
+
+function togCam() {
+  if (camOpen) stopCam();
+  else startCam();
+}
+
+function startCam() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('המצלמה לא זמינה בסביבה הזו. יש לפתוח את הקובץ ישירות בדפדפן.');
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+    audio: true
+  }).then(function(stream) {
+    camStream = stream;
+    document.getElementById('camVid').srcObject = stream;
+    document.getElementById('camWrap').classList.add('open');
+    document.getElementById('camBtn').classList.add('on');
+    document.getElementById('camBtn').textContent = '📹 מצלמה ●';
+    camOpen = true;
+  }).catch(function(e) {
+    alert('לא ניתן לגשת למצלמה: ' + e.message);
+  });
+}
+
+function stopCam() {
+  if (mediaRec && mediaRec.state === 'recording') stopRec();
+  if (camStream) {
+    camStream.getTracks().forEach(function(t) { t.stop(); });
+    camStream = null;
+  }
+  document.getElementById('camVid').srcObject = null;
+  document.getElementById('camWrap').classList.remove('open');
+  document.getElementById('camBtn').classList.remove('on');
+  document.getElementById('camBtn').textContent = '📹 מצלמה';
+  camOpen = false;
+}
+
+function togRec() {
+  if (mediaRec && mediaRec.state === 'recording') stopRec();
+  else startRec();
+}
+
+function startRec() {
+  if (!camStream) return;
+  recChunks = [];
+  var opts = { mimeType: 'video/webm;codecs=vp9,opus' };
+  if (!MediaRecorder.isTypeSupported(opts.mimeType)) opts.mimeType = 'video/webm';
+  if (!MediaRecorder.isTypeSupported(opts.mimeType)) opts.mimeType = '';
+  mediaRec = new MediaRecorder(camStream, opts);
+  mediaRec.ondataavailable = function(e) { if (e.data.size > 0) recChunks.push(e.data); };
+  mediaRec.onstop = function() {
+    var blob = new Blob(recChunks, { type: mediaRec.mimeType || 'video/webm' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var now = new Date();
+    var ts = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + '-' + String(now.getMinutes()).padStart(2, '0');
+    a.download = 'recording_' + ts + '.webm';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  mediaRec.start(1000);
+  recSec = 0;
+  document.getElementById('recBtn').textContent = '⏹ עצור הקלטה';
+  document.getElementById('recBtn').classList.add('recording');
+  document.getElementById('camBtn').classList.add('rec');
+  document.getElementById('camTimer').classList.add('on');
+  updRecTimer();
+  recTimerInt = setInterval(function() { recSec++; updRecTimer(); }, 1000);
+}
+
+function stopRec() {
+  if (mediaRec && mediaRec.state === 'recording') mediaRec.stop();
+  clearInterval(recTimerInt);
+  recTimerInt = null;
+  document.getElementById('recBtn').textContent = '⏺ הקלטה';
+  document.getElementById('recBtn').classList.remove('recording');
+  document.getElementById('camBtn').classList.remove('rec');
+  document.getElementById('camTimer').classList.remove('on');
+}
+
+function updRecTimer() {
+  var m = String(Math.floor(recSec / 60)).padStart(2, '0');
+  var s = String(recSec % 60).padStart(2, '0');
+  document.getElementById('camTimer').textContent = '● ' + m + ':' + s;
+}
+
+/* ---- Keyboard Shortcuts ---- */
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); togPlay(); }
+  if (e.code === 'ArrowUp') { e.preventDefault(); chFnt(2); }
+  if (e.code === 'ArrowDown') { e.preventDefault(); chFnt(-2); }
+  if (e.code === 'ArrowRight') {
+    spd = Math.min(10, Math.round((spd + 0.5) * 10) / 10);
+    document.getElementById('spd').value = spd;
+    updSpd();
+  }
+  if (e.code === 'ArrowLeft') {
+    spd = Math.max(0.1, Math.round((spd - 0.5) * 10) / 10);
+    document.getElementById('spd').value = spd;
+    updSpd();
+  }
+});
+
+/* ---- Initialize ---- */
+buildSB();
+
+// Load first lesson when ready
+function initFirstLesson() {
+  if (D && D[0] && D[0].lessons && D[0].lessons[0]) {
+    loadL(0, 0);
+    return true;
+  }
+  return false;
+}
+
+// Try loading with increasing delays to handle all environments
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(initFirstLesson, 50);
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initFirstLesson, 50);
+  });
+}
+
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (!curL) initFirstLesson();
+  }, 200);
+});
+</script>
+</body>
+</html>
